@@ -1,0 +1,28 @@
+# Node.js
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Env files
+.env
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Docker
+docker-compose.override.yml
+.Dockerfile.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# Optional: coverage reports
+coverage/
