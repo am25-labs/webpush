@@ -23,7 +23,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Endpoint para enviar notificaciones push
+// Endpoint básico para enviar notificaciones push
 app.post("/send", async (req, res) => {
   const { subscription, payload } = req.body;
 
@@ -40,6 +40,40 @@ app.post("/send", async (req, res) => {
     console.error("Error enviando notificación:", error);
     res.status(500).json({ error: "Error enviando notificación" });
   }
+});
+
+// Endpoint para enviar a múltiples subscripciones
+app.post("/send-many", async (req, res) => {
+  const { subscriptions, payload } = req.body;
+
+  if (!Array.isArray(subscriptions) || subscriptions.length === 0 || !payload) {
+    return res.status(400).json({
+      error: "Se requiere un arreglo de 'subscriptions' y un 'payload'.",
+    });
+  }
+
+  const results = await Promise.all(
+    subscriptions.map(async (subscription) => {
+      try {
+        await webpush.sendNotification(subscription, JSON.stringify(payload));
+        return { success: true };
+      } catch (error) {
+        console.error("Error enviando a una subscripción:", error);
+        return { success: false, error: error.message };
+      }
+    })
+  );
+
+  const successCount = results.filter((r) => r.success).length;
+  const errorCount = results.length - successCount;
+
+  res.json({
+    success: true,
+    total: results.length,
+    sent: successCount,
+    failed: errorCount,
+    results,
+  });
 });
 
 app.listen(PORT, () => {
