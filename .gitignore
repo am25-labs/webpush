@@ -1,9 +1,6 @@
 # Node.js
 node_modules/
 npm-debug.log*
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
 
 # Env files
 .env
