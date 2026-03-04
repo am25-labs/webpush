@@ -1,12 +1,23 @@
 {
   "name": "am-webpush",
   "version": "1.0.0",
-  "description": "Microservicio para enviar notificaciones Web Push usando Node.js y Express.",
-  "main": "index.js",
+  "description": "Web Push notification server — CLI and programmatic library.",
   "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "bin": {
+    "am-webpush": "./bin/am-webpush.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "index.js"
+  ],
   "scripts": {
-    "start": "node index.js",
-    "generate:vapid": "node utils/vapid.js"
+    "start": "node bin/am-webpush.js",
+    "generate:vapid": "node src/vapid.js"
   },
   "keywords": [
     "web-push",
