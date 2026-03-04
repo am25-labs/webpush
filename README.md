@@ -457,3 +457,36 @@ Todas las notificaciones usan este formato:
 ```
 
 El Service Worker lee `title` y `body` para mostrar la notificación, y `url` para navegar cuando el usuario hace click.
+
+---
+
+## Nota sobre iOS (Safari)
+
+En Android y desktop (Chrome, Firefox, Edge), las push notifications funcionan solo con registrar un Service Worker — no se necesita nada más.
+
+**En iOS (Safari 16.4+)** hay un requisito adicional: el sitio debe estar instalado como PWA (agregado al Home Screen). Para esto necesitás un manifest mínimo:
+
+```json
+// public/manifest.json
+{
+  "name": "Tu App",
+  "short_name": "App",
+  "start_url": "/",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
+```
+
+Y linkearlo en tu `<head>`:
+
+```html
+<link rel="manifest" href="/manifest.json" />
+```
+
+Con eso + el Service Worker + que el usuario agregue el sitio al Home Screen, las push notifications funcionan en iOS. Sin el manifest y sin estar instalada, iOS ignora las notificaciones silenciosamente.
