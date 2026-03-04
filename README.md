@@ -271,6 +271,8 @@ Tu app debe guardar este objeto para poder enviar notificaciones a ese usuario d
 
 ### Modelo de Prisma
 
+#### Con usuarios locales (la app tiene tabla `User`)
+
 ```prisma
 model PushSubscription {
   id        String   @id @default(cuid())
@@ -284,9 +286,29 @@ model PushSubscription {
 }
 ```
 
+- `@relation` vincula la subscription al usuario local. `onDelete: Cascade` limpia las subscriptions si se elimina el usuario.
+
+#### Con SSO/IdP externo (no hay tabla `User` local)
+
+```prisma
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+  userId    String
+
+  @@index([userId])
+}
+```
+
+- `userId` es el ID del usuario proveniente del IdP/SSO (e.g. el claim `sub` del token OIDC). Se guarda como string plano sin foreign key, ya que la tabla de usuarios vive en el IdP, no en la app.
+
+#### Campos comunes
+
 - `endpoint` es único por subscription (un browser + un service worker = un endpoint).
 - `keys` se guarda como JSON (contiene `p256dh` y `auth`).
-- `userId` vincula la subscription al usuario. `onDelete: Cascade` limpia las subscriptions si se elimina el usuario.
+- `userId` en ambos casos permite buscar "todas las subscriptions del usuario X" para enviarle notificaciones dirigidas a todos sus dispositivos.
 
 ### Guardar la subscription (Server Action)
 
