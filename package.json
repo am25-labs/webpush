@@ -1,5 +1,5 @@
 {
-  "name": "web-push-server",
+  "name": "am-webpush",
   "version": "1.0.0",
   "description": "Microservicio para enviar notificaciones Web Push usando Node.js y Express.",
   "main": "index.js",
@@ -17,9 +17,9 @@
   "author": "Alejandro Mártir",
   "license": "MIT",
   "dependencies": {
-    "cors": "2.8.5",
-    "dotenv": "16.5.0",
-    "express": "5.1.0",
+    "cors": "2.8.6",
+    "dotenv": "17.3.1",
+    "express": "5.2.1",
     "web-push": "3.6.7"
   },
   "packageManager": "pnpm@10.6.2+sha512.47870716bea1572b53df34ad8647b42962bc790ce2bf4562ba0f643237d7302a3d6a8ecef9e4bdfc01d23af1969aa90485d4cebb0b9638fa5ef1daef656f6c1b"
