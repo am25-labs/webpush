@@ -245,6 +245,7 @@ Agregá las claves en tu `.env.local`:
 VAPID_SUBJECT=https://tudominio.com
 VAPID_PUBLIC_KEY=BNx4a...
 VAPID_PRIVATE_KEY=abc1...
+PUSH_SERVER_URL=http://localhost:5500
 ```
 
 ---
@@ -332,10 +333,24 @@ export async function subscribePush(subscription) {
       userId: session.user.id,
     },
   });
+
+  // Enviar notificación de confirmación
+  await fetch(process.env.PUSH_SERVER_URL + "/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      subscription,
+      payload: {
+        title: "Notificaciones activadas",
+        body: "Vas a recibir notificaciones a partir de ahora.",
+        url: "/",
+      },
+    }),
+  });
 }
 ```
 
-Se usa `upsert` por `endpoint` para que si el usuario se re-suscribe, se actualicen las keys en vez de crear un duplicado.
+Se usa `upsert` por `endpoint` para que si el usuario se re-suscribe, se actualicen las keys en vez de crear un duplicado. Después de guardar, se envía una notificación de confirmación para que el usuario sepa que las notificaciones quedaron activas.
 
 ### Obtener subscriptions para broadcast
 
