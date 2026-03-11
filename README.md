@@ -11,30 +11,34 @@ Web Push notification server. It can be used in two ways:
 
 ### 1. Install
 
-```bash
+````bash
 # With pnpm
 pnpm install
 
-# With npm
-npm install
-```
+### CLI
 
-### 2. Generate VAPID keys
-
-VAPID keys identify your server to browser push services (Google, Mozilla, Apple). You only generate them once:
+This project exposes a minimal CLI entrypoint intended for local development. Run the server locally using one of these options:
 
 ```bash
-pnpm run generate:vapid
-```
+# via npm scripts (uses the local bin)
+pnpm start
 
-This prints two values:
+# directly
+node bin/webpush.js
 
-```
-VAPID_PUBLIC_KEY= BNx4a...
-VAPID_PRIVATE_KEY= abc1...
-```
+# run the local bin file with npx (runs the file in your repo)
+npx ./bin/webpush.js
+````
 
-Save them. The **public key** is used on the frontend (to subscribe users). The **private key** stays on the server.
+The `pnpm start` script executes `node bin/webpush.js`, which imports `src/server.js` and starts the Express server.
+
+Development tip: set VAPID env vars and point your app to the local server:
+
+```env
+PUSH_SERVER_URL=http://localhost:5500
+VAPID_PUBLIC_KEY=BNx4a...
+VAPID_PRIVATE_KEY=abc1...
+```
 
 ---
 
@@ -62,6 +66,25 @@ pnpm start
 ```
 
 The server listens on `http://localhost:5500` by default.
+
+### CLI
+
+This project exposes a minimal CLI entrypoint. Use one of the following to run the server locally:
+
+```bash
+# run via npm scripts (uses the local bin)
+pnpm start
+
+# run without installing: download & run the package's bin
+npx web-push-server
+
+# install globally to get the `webpush` command
+# npm install -g web-push-server
+# then run
+webpush
+```
+
+The `pnpm start` script executes `node bin/webpush.js`, which imports `src/server.js` and starts the Express server.
 
 ### Available endpoints
 
