@@ -1,69 +1,69 @@
 # am-webpush
 
-Servidor de notificaciones Web Push con claves VAPID. Se puede usar de dos formas:
+Web Push notification server. It can be used in two ways:
 
-1. **Como servidor standalone** — lo levantás en un VPS y le mandás requests desde cualquier app.
-2. **Como librería** — lo importás en tu proyecto Express/Next.js y montás las rutas directamente.
+1. **As a standalone server** — run it on a VPS and send requests to it from any app.
+2. **As a library** — import it into your Express/Next.js project and mount the routes directly.
 
 ---
 
-## Inicio rápido
+## Quick Start
 
-### 1. Instalación
+### 1. Install
 
 ```bash
-# Con pnpm
+# With pnpm
 pnpm install
 
-# Con npm
+# With npm
 npm install
 ```
 
-### 2. Generar claves VAPID
+### 2. Generate VAPID keys
 
-Las claves VAPID identifican a tu servidor ante los push services de los browsers (Google, Mozilla, Apple). Solo las generás una vez:
+VAPID keys identify your server to browser push services (Google, Mozilla, Apple). You only generate them once:
 
 ```bash
 pnpm run generate:vapid
 ```
 
-Esto imprime dos valores:
+This prints two values:
 
 ```
 VAPID_PUBLIC_KEY= BNx4a...
 VAPID_PRIVATE_KEY= abc1...
 ```
 
-Guardalos. La **clave pública** la vas a usar en el frontend (para suscribir al usuario). La **clave privada** solo en el servidor.
+Save them. The **public key** is used on the frontend (to subscribe users). The **private key** stays on the server.
 
 ---
 
-## Modo 1: Servidor standalone
+## Mode 1: Standalone server
 
-Ideal si querés un servicio separado al que tus apps le hagan requests. Es la forma recomendada si múltiples apps van a compartir el mismo sistema de push.
+Use this when you want a separate service that your apps call. It's recommended if multiple apps share the same push system.
 
-### Configurar
+### Configuration
 
-Creá un archivo `.env` en la raíz (o configurá las variables en tu plataforma de deploy: Dokploy, Vercel, etc.):
+Create a `.env` file at the project root (or set the variables in your deployment platform):
 
 ```env
-VAPID_SUBJECT=https://tudominio.com
+VAPID_SUBJECT=https://your-domain.com
 VAPID_PUBLIC_KEY=BNx4a...
 VAPID_PRIVATE_KEY=abc1...
 PORT=5500
 ```
 
-`VAPID_SUBJECT` es una URL de contacto (`https://...` o `mailto:...`). Los push services la usan si necesitan contactarte.
+`VAPID_SUBJECT` should be a contact URL (`https://...` or `mailto:...`). Push services use it if they need to contact you.
 
-### Levantar
+### Start
 
 ```bash
 pnpm start
 ```
 
-El servidor queda escuchando en `http://localhost:5500`.
+The server listens on `http://localhost:5500` by default.
 
-### Endpoints disponibles
+### Available endpoints
 
 #### `GET /health`
 
@@ -76,7 +76,7 @@ curl http://localhost:5500/health
 
 #### `POST /send`
 
-Envía una notificación a un usuario.
+Send a notification to a single subscription.
 
 ```bash
 curl -X POST http://localhost:5500/send \
@@ -90,8 +90,8 @@ curl -X POST http://localhost:5500/send \
       }
     },
     "payload": {
-      "title": "Nuevo capítulo",
-      "body": "Se subió el capítulo 42 de One Piece"
+      "title": "New episode",
+      "body": "Episode 42 has been uploaded"
     }
   }'
 # → { "success": true }
@@ -99,7 +99,7 @@ curl -X POST http://localhost:5500/send \
 
 #### `POST /send-many`
 
-Envía la misma notificación a múltiples usuarios.
+Send the same notification to multiple subscriptions.
 
 ```bash
 curl -X POST http://localhost:5500/send-many \
@@ -110,8 +110,8 @@ curl -X POST http://localhost:5500/send-many \
       { "endpoint": "...", "keys": { "p256dh": "...", "auth": "..." } }
     ],
     "payload": {
-      "title": "Mantenimiento",
-      "body": "El servidor estará en mantenimiento a las 3am"
+      "title": "Maintenance",
+      "body": "The server will be down for maintenance at 3am"
     }
   }'
 # → { "success": true, "total": 2, "sent": 2, "failed": 0, "results": [...] }
@@ -119,9 +119,9 @@ curl -X POST http://localhost:5500/send-many \
 
 ---
 
-## Modo 2: Como librería
+## Mode 2: As a library
 
-Ideal si ya tenés un servidor Express o una app Next.js y querés montar las rutas de push directamente ahí, sin levantar otro servicio.
+Use this if you already have an Express server or a Next.js app and want to mount the push routes directly without running a separate service.
 
 ### Express
 
@@ -135,14 +135,14 @@ app.use(express.json());
 app.use(
   "/push",
   createPushServer({
-    vapidSubject: "https://tudominio.com",
+    vapidSubject: "https://your-domain.com",
     vapidPublicKey: process.env.VAPID_PUBLIC_KEY,
     vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
-  })
+  }),
 );
 
 app.listen(3000);
-// Endpoints disponibles:
+// Available endpoints:
 // GET  /push/health
 // POST /push/send
 // POST /push/send-many
@@ -150,13 +150,13 @@ app.listen(3000);
 
 ### Next.js (App Router)
 
-En Next.js no montás un router de Express directamente. En cambio, usás `web-push` directamente dentro de Route Handlers. No necesitás instalar `am-webpush` como dependencia, solo `web-push`:
+You don't mount an Express router inside Next.js. Instead, use `web-push` directly in Route Handlers. You don't need `am-webpush` as a dependency, only `web-push`:
 
 ```bash
 pnpm add web-push
 ```
 
-#### Paso 1: Crear el archivo de configuración
+#### Step 1: Create the configuration file
 
 ```js
 // lib/webpush.js
@@ -165,13 +165,13 @@ import webpush from "web-push";
 webpush.setVapidDetails(
   process.env.VAPID_SUBJECT,
   process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
+  process.env.VAPID_PRIVATE_KEY,
 );
 
 export default webpush;
 ```
 
-#### Paso 2: Crear los Route Handlers
+#### Step 2: Create Route Handlers
 
 ```js
 // app/api/push/send/route.js
@@ -182,8 +182,8 @@ export async function POST(request) {
 
   if (!subscription || !payload) {
     return Response.json(
-      { error: "subscription y payload son requeridos" },
-      { status: 400 }
+      { error: "subscription and payload are required" },
+      { status: 400 },
     );
   }
 
@@ -191,10 +191,10 @@ export async function POST(request) {
     await webpush.sendNotification(subscription, JSON.stringify(payload));
     return Response.json({ success: true });
   } catch (error) {
-    console.error("Error enviando notificación:", error);
+    console.error("Error sending notification:", error);
     return Response.json(
-      { error: "Error enviando notificación" },
-      { status: 500 }
+      { error: "Error sending notification" },
+      { status: 500 },
     );
   }
 }
@@ -209,8 +209,8 @@ export async function POST(request) {
 
   if (!Array.isArray(subscriptions) || subscriptions.length === 0 || !payload) {
     return Response.json(
-      { error: "Se requiere un arreglo de 'subscriptions' y un 'payload'." },
-      { status: 400 }
+      { error: "An array of 'subscriptions' and a 'payload' are required." },
+      { status: 400 },
     );
   }
 
@@ -222,7 +222,7 @@ export async function POST(request) {
       } catch (error) {
         return { success: false, error: error.message };
       }
-    })
+    }),
   );
 
   const successCount = results.filter((r) => r.success).length;
@@ -237,12 +237,12 @@ export async function POST(request) {
 }
 ```
 
-#### Paso 3: Variables de entorno
+#### Step 3: Environment variables
 
-Agregá las claves en tu `.env.local`:
+Add the keys to your `.env.local`:
 
 ```env
-VAPID_SUBJECT=https://tudominio.com
+VAPID_SUBJECT=https://your-domain.com
 VAPID_PUBLIC_KEY=BNx4a...
 VAPID_PRIVATE_KEY=abc1...
 PUSH_SERVER_URL=http://localhost:5500
@@ -250,13 +250,13 @@ PUSH_SERVER_URL=http://localhost:5500
 
 ---
 
-## Persistencia de subscriptions
+## Subscription persistence
 
-**El microservicio no almacena subscriptions.** Solo recibe una subscription y envía la notificación. La app que lo consume es responsable de guardar y administrar las subscriptions de sus usuarios.
+This microservice does not store subscriptions. It accepts a subscription and sends a notification. The consuming app is responsible for storing and managing user subscriptions.
 
-### ¿Qué es una subscription?
+### What is a subscription?
 
-Cuando un usuario acepta recibir notificaciones, el browser genera un objeto `subscription` con esta forma:
+When a user consents to notifications the browser returns a `subscription` object shaped like:
 
 ```json
 {
@@ -268,11 +268,11 @@ Cuando un usuario acepta recibir notificaciones, el browser genera un objeto `su
 }
 ```
 
-Tu app debe guardar este objeto para poder enviar notificaciones a ese usuario después.
+Your app must store this object to be able to send notifications to that user later.
 
-### Modelo de Prisma
+### Prisma model
 
-#### Con usuarios locales (la app tiene tabla `User`)
+#### With local users (app has a `User` table)
 
 ```prisma
 model PushSubscription {
@@ -287,9 +287,9 @@ model PushSubscription {
 }
 ```
 
-- `@relation` vincula la subscription al usuario local. `onDelete: Cascade` limpia las subscriptions si se elimina el usuario.
+- `@relation` links the subscription to a local user. `onDelete: Cascade` removes subscriptions when the user is deleted.
 
-#### Con SSO/IdP externo (no hay tabla `User` local)
+#### With external SSO/IdP (no local `User` table)
 
 ```prisma
 model PushSubscription {
@@ -303,15 +303,15 @@ model PushSubscription {
 }
 ```
 
-- `userId` es el ID del usuario proveniente del IdP/SSO (e.g. el claim `sub` del token OIDC). Se guarda como string plano sin foreign key, ya que la tabla de usuarios vive en el IdP, no en la app.
+- `userId` is the user ID from the IdP/SSO (e.g., the `sub` claim). It is stored as a plain string since the users table lives in the IdP.
 
-#### Campos comunes
+#### Common fields
 
-- `endpoint` es único por subscription (un browser + un service worker = un endpoint).
-- `keys` se guarda como JSON (contiene `p256dh` y `auth`).
-- `userId` en ambos casos permite buscar "todas las subscriptions del usuario X" para enviarle notificaciones dirigidas a todos sus dispositivos.
+- `endpoint` is unique per subscription (a browser + service worker = one endpoint).
+- `keys` is stored as JSON (contains `p256dh` and `auth`).
+- `userId` allows finding "all subscriptions for user X" to send notifications to all that user's devices.
 
-### Guardar la subscription (Server Action)
+#### Save subscription (Server Action)
 
 ```js
 // actions/push.js
@@ -322,7 +322,7 @@ import { auth } from "@/lib/auth";
 
 export async function subscribePush(subscription) {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("No autenticado");
+  if (!session?.user?.id) throw new Error("Not authenticated");
 
   await prisma.pushSubscription.upsert({
     where: { endpoint: subscription.endpoint },
@@ -334,15 +334,15 @@ export async function subscribePush(subscription) {
     },
   });
 
-  // Enviar notificación de confirmación
+  // Send a confirmation notification
   await fetch(process.env.PUSH_SERVER_URL + "/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       subscription,
       payload: {
-        title: "Notificaciones activadas",
-        body: "Vas a recibir notificaciones a partir de ahora.",
+        title: "Notifications enabled",
+        body: "You will now receive notifications.",
         url: "/",
       },
     }),
@@ -350,9 +350,9 @@ export async function subscribePush(subscription) {
 }
 ```
 
-Se usa `upsert` por `endpoint` para que si el usuario se re-suscribe, se actualicen las keys en vez de crear un duplicado. Después de guardar, se envía una notificación de confirmación para que el usuario sepa que las notificaciones quedaron activas.
+`upsert` is used by `endpoint` so re-subscriptions update keys instead of creating duplicates. After saving, a confirmation notification is sent.
 
-### Obtener subscriptions para broadcast
+### Get subscriptions for broadcast
 
 ```js
 // actions/push.js
@@ -366,40 +366,44 @@ export async function getPushSubscriptions() {
 }
 ```
 
-### Enviar notificación individual
+### Send a single notification
 
-Desde el frontend, obtenés la subscription del browser actual y la mandás al microservicio:
+From the frontend, get the current browser subscription and POST it to the microservice:
 
 ```js
 const registration = await navigator.serviceWorker.ready;
 const subscription = await registration.pushManager.getSubscription();
 
 if (subscription) {
-  await fetch("https://tu-push-server.com/send", {
+  await fetch("https://your-push-server.com/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       subscription,
-      payload: { title: "Hola", body: "Notificación individual", url: "/" },
+      payload: { title: "Hello", body: "Single notification", url: "/" },
     }),
   });
 }
 ```
 
-### Enviar notificación a todos (broadcast)
+### Send to all (broadcast)
 
-Desde el frontend o un server action, obtenés todas las subscriptions de la DB y llamás a `/send-many`:
+Get all subscriptions from your DB and call `/send-many`:
 
 ```js
 const { subscriptions } = await getPushSubscriptions();
 
 if (subscriptions?.length) {
-  await fetch("https://tu-push-server.com/send-many", {
+  await fetch("https://your-push-server.com/send-many", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       subscriptions,
-      payload: { title: "Aviso", body: "Mensaje para todos", url: "/" },
+      payload: {
+        title: "Announcement",
+        body: "Message for everyone",
+        url: "/",
+      },
     }),
   });
 }
@@ -407,58 +411,58 @@ if (subscriptions?.length) {
 
 ---
 
-## El flujo completo (cómo funciona)
+## Full flow (how it works)
 
 ```
-┌─────────────┐     ①  Pedir permiso     ┌─────────────┐
+┌─────────────┐     ①  Ask permission     ┌─────────────┐
 │             │ ◄──────────────────────── │             │
-│   Browser   │     ② subscription obj   │  Tu webapp  │
-│  (usuario)  │ ────────────────────────► │  (frontend) │
+│   Browser   │     ② subscription obj   │   Webapp    │
+│  (user)     │ ────────────────────────► │  (frontend) │
 │             │                          │             │
 └──────┬──────┘                          └──────┬──────┘
        │                                        │
-       │                                        │ ③ Guardar subscription
-       │                                        │    en tu base de datos
+       │                                        │ ③ Save subscription
+       │                                        │    to your database
        │                                        │
        │                                        ▼
        │                                 ┌─────────────┐
-       │                                 │  Tu backend  │
-       │                                 │  o API route │
+       │                                 │  Your backend│
+       │                                 │  or API route│
        │                                 └──────┬──────┘
        │                                        │
-       │                                        │ ④ POST /send con
+       │                                        │ ④ POST /send with
        │                                        │    subscription + payload
        │                                        ▼
        │                                 ┌─────────────┐
        │                                 │ am-webpush  │
-       │                                 │  (este repo) │
+       │                                 │  (this repo)│
        │                                 └──────┬──────┘
        │                                        │
-       │         ⑤ Push cifrado con VAPID       │
+       │         ⑤ Encrypted push with VAPID     │
        │ ◄──────────────────────────────────────┘
-       │      (vía FCM, Mozilla Push, etc.)
+       │      (via FCM, Mozilla Push, etc.)
        ▼
-  🔔 Notificación
+  🔔 Notification
 ```
 
-1. Tu frontend pide permiso al usuario para enviar notificaciones.
-2. El browser devuelve un objeto `subscription` (un endpoint URL + claves de cifrado).
-3. Guardás esa subscription en tu base de datos (con Prisma).
-4. Cuando querés notificar, tu backend le manda la subscription + payload a `am-webpush`.
-5. `am-webpush` cifra el mensaje con las claves VAPID y lo envía al push service del browser.
+1. Your frontend asks for permission to send notifications.
+2. The browser returns a `subscription` (endpoint URL + encryption keys).
+3. You save that subscription in your database (e.g., with Prisma).
+4. When you want to notify, your backend sends the subscription + payload to `am-webpush`.
+5. `am-webpush` encrypts the message with VAPID keys and sends it to the browser's push service.
 
-### Ejemplo del frontend (Service Worker)
+### Frontend example (Service Worker)
 
 ```js
-// Registrar service worker y suscribir al usuario
+// Register service worker and subscribe the user
 const registration = await navigator.serviceWorker.register("/sw.js");
 
 const subscription = await registration.pushManager.subscribe({
   userVisibleOnly: true,
-  applicationServerKey: "TU_VAPID_PUBLIC_KEY",
+  applicationServerKey: "YOUR_VAPID_PUBLIC_KEY",
 });
 
-// Guardar la subscription en tu DB
+// Save subscription in your DB
 await subscribePush(subscription);
 ```
 
@@ -471,7 +475,7 @@ self.addEventListener("push", (event) => {
       body: data.body,
       icon: data.icon,
       data: { url: data.url || "/" },
-    })
+    }),
   );
 });
 
@@ -483,30 +487,30 @@ self.addEventListener("notificationclick", (event) => {
 
 ### Payload shape
 
-Todas las notificaciones usan este formato:
+All notifications use this format:
 
 ```json
 {
-  "title": "Título de la notificación",
-  "body": "Cuerpo del mensaje",
-  "url": "/ruta-al-hacer-click"
+  "title": "Notification title",
+  "body": "Message body",
+  "url": "/click-target"
 }
 ```
 
-El Service Worker lee `title` y `body` para mostrar la notificación, y `url` para navegar cuando el usuario hace click.
+The Service Worker reads `title` and `body` to display the notification and `url` to navigate when the user clicks.
 
 ---
 
-## Nota sobre iOS (Safari)
+## Note about iOS (Safari)
 
-En Android y desktop (Chrome, Firefox, Edge), las push notifications funcionan solo con registrar un Service Worker — no se necesita nada más.
+On Android and desktop (Chrome, Firefox, Edge), push notifications work by registering a Service Worker — nothing else is required.
 
-**En iOS (Safari 16.4+)** hay un requisito adicional: el sitio debe estar instalado como PWA (agregado al Home Screen). Para esto necesitás un manifest mínimo:
+**On iOS (Safari 16.4+)** there is an additional requirement: the site must be installed as a PWA (added to the Home Screen). You need a minimal manifest for this:
 
 ```json
 // public/manifest.json
 {
-  "name": "Tu App",
+  "name": "Your App",
   "short_name": "App",
   "start_url": "/",
   "display": "standalone",
@@ -520,10 +524,10 @@ En Android y desktop (Chrome, Firefox, Edge), las push notifications funcionan s
 }
 ```
 
-Y linkearlo en tu `<head>`:
+And include it in your `<head>`:
 
 ```html
 <link rel="manifest" href="/manifest.json" />
 ```
 
-Con eso + el Service Worker + que el usuario agregue el sitio al Home Screen, las push notifications funcionan en iOS. Sin el manifest y sin estar instalada, iOS ignora las notificaciones silenciosamente.
+With that + a Service Worker + the user adding the site to the Home Screen, push notifications work on iOS. Without the manifest and installation, iOS will silently ignore notifications.
