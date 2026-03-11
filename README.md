@@ -1,4 +1,4 @@
-# am-webpush
+# web-push-server
 
 Web Push notification server. It can be used in two ways:
 
@@ -127,7 +127,7 @@ Use this if you already have an Express server or a Next.js app and want to moun
 
 ```js
 import express from "express";
-import { createPushServer } from "am-webpush";
+import { createPushServer } from "web-push-server";
 
 const app = express();
 app.use(express.json());
@@ -150,7 +150,7 @@ app.listen(3000);
 
 ### Next.js (App Router)
 
-You don't mount an Express router inside Next.js. Instead, use `web-push` directly in Route Handlers. You don't need `am-webpush` as a dependency, only `web-push`:
+You don't mount an Express router inside Next.js. Instead, use `web-push` directly in Route Handlers. You don't need `web-push-server` as a dependency, only `web-push`:
 
 ```bash
 pnpm add web-push
@@ -434,8 +434,8 @@ if (subscriptions?.length) {
        │                                        │    subscription + payload
        │                                        ▼
        │                                 ┌─────────────┐
-       │                                 │ am-webpush  │
-       │                                 │  (this repo)│
+      │                                 │ web-push-server │
+      │                                 │  (this repo)    │
        │                                 └──────┬──────┘
        │                                        │
        │         ⑤ Encrypted push with VAPID     │
@@ -448,8 +448,8 @@ if (subscriptions?.length) {
 1. Your frontend asks for permission to send notifications.
 2. The browser returns a `subscription` (endpoint URL + encryption keys).
 3. You save that subscription in your database (e.g., with Prisma).
-4. When you want to notify, your backend sends the subscription + payload to `am-webpush`.
-5. `am-webpush` encrypts the message with VAPID keys and sends it to the browser's push service.
+4. When you want to notify, your backend sends the subscription + payload to `web-push-server`.
+5. `web-push-server` encrypts the message with VAPID keys and sends it to the browser's push service.
 
 ### Frontend example (Service Worker)
 

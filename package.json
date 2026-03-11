@@ -1,5 +1,5 @@
 {
-  "name": "am-webpush",
+  "name": "web-push-server",
   "version": "1.0.0",
   "description": "Web Push notification server — CLI and programmatic library.",
   "type": "module",
@@ -8,7 +8,7 @@
     ".": "./index.js"
   },
   "bin": {
-    "am-webpush": "./bin/am-webpush.js"
+    "webpush": "./bin/webpush.js"
   },
   "files": [
     "bin/",
@@ -16,7 +16,7 @@
     "index.js"
   ],
   "scripts": {
-    "start": "node bin/am-webpush.js",
+    "start": "node bin/webpush.js",
     "generate:vapid": "node src/vapid.js"
   },
   "keywords": [
