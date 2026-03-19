@@ -1,29 +1,35 @@
 {
-  "name": "web-push-server",
-  "version": "1.0.0",
+  "name": "am-webpush",
+  "version": "2.0.0",
   "description": "Web Push notification server — CLI and programmatic library.",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "bin": {
-    "webpush": "./bin/webpush.js"
+    "am-webpush": "./dist/bin/webpush.js"
   },
   "files": [
-    "bin/",
-    "src/",
-    "index.js"
+    "dist/"
   ],
   "scripts": {
-    "start": "node bin/webpush.js",
-    "generate:vapid": "node src/vapid.js"
+    "build": "tsc",
+    "start": "node dist/bin/webpush.js",
+    "dev": "tsc --watch",
+    "generate:vapid": "node dist/src/vapid.js",
+    "prepublishOnly": "pnpm build"
   },
   "keywords": [
     "web-push",
     "notifications",
     "express",
-    "nodejs"
+    "nodejs",
+    "typescript"
   ],
   "author": "Alejandro Mártir",
   "license": "MIT",
@@ -33,5 +39,12 @@
     "express": "5.2.1",
     "web-push": "3.6.7"
   },
-  "packageManager": "pnpm@10.6.2+sha512.47870716bea1572b53df34ad8647b42962bc790ce2bf4562ba0f643237d7302a3d6a8ecef9e4bdfc01d23af1969aa90485d4cebb0b9638fa5ef1daef656f6c1b"
+  "packageManager": "pnpm@10.6.2+sha512.47870716bea1572b53df34ad8647b42962bc790ce2bf4562ba0f643237d7302a3d6a8ecef9e4bdfc01d23af1969aa90485d4cebb0b9638fa5ef1daef656f6c1b",
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "@types/web-push": "^3.6.4",
+    "typescript": "^5.9.3"
+  }
 }

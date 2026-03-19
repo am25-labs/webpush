@@ -9,9 +9,9 @@ dotenv.config();
 const PORT = process.env.PORT || 5500;
 
 webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
+  process.env.VAPID_SUBJECT!,
+  process.env.VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
 );
 
 const app = express();
