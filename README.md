@@ -1,11 +1,12 @@
 # am-webpush
 
-Simple **Web Push notification server** built with Express 5 and TypeScript.
+Web Push notification microservice built with Express 5 and TypeScript.
 
-It can be used in two ways:
+Deploy it as a standalone service and send HTTP requests to it from any app.
 
-1. **Standalone service** — run this repo as a microservice and send HTTP requests to it.
-2. **Library** — import and mount the router inside your own backend (Express, Next.js, etc.).
+```
+Your App  →  HTTP  →  am-webpush  →  Push Service  →  Browser
+```
 
 The server **does not store subscriptions**. Your application is responsible for storing them.
 
@@ -48,6 +49,26 @@ pnpm start
 ```
 
 The API will be available at `http://localhost:5500`.
+
+---
+
+## Authentication
+
+The `/send` and `/send-many` endpoints are protected with API key authentication. The `/health` endpoint remains public.
+
+All send requests must include the key in the `Authorization` header:
+
+```
+Authorization: Bearer your-secret-api-key
+```
+
+If the key is missing or incorrect, the server responds with `401`:
+
+```json
+{ "error": "Unauthorized" }
+```
+
+If no `API_KEY` is configured in the `.env`, the endpoints remain open.
 
 ---
 
@@ -133,39 +154,9 @@ Response:
 
 ---
 
-## Authentication
+## Consuming from your app
 
-The `/send` and `/send-many` endpoints are protected with API key authentication. The `/health` endpoint remains public.
-
-When `API_KEY` is set (standalone) or `apiKey` is provided (library), all send requests must include the key in the `Authorization` header:
-
-```
-Authorization: Bearer your-secret-api-key
-```
-
-If the key is missing or incorrect, the server responds with:
-
-```json
-{ "error": "Unauthorized" }
-```
-
-**Status:** `401`
-
-If no API key is configured, the endpoints remain open (backwards compatible).
-
----
-
-## Usage
-
-### 1. Standalone server (recommended)
-
-Run this repository as a separate push service. Your apps send HTTP requests to it whenever they need to deliver a notification.
-
-```
-App  →  HTTP  →  am-webpush  →  Push Service  →  Browser
-```
-
-#### Example (TypeScript)
+### TypeScript
 
 ```ts
 interface PushSubscription {
@@ -195,7 +186,7 @@ async function sendPush(subscription: PushSubscription) {
 }
 ```
 
-#### Example (JavaScript)
+### JavaScript
 
 ```js
 await fetch("https://your-push-server.com/send", {
@@ -215,219 +206,15 @@ await fetch("https://your-push-server.com/send", {
 });
 ```
 
-This approach is recommended if:
-
-- Multiple apps share the same push system.
-- You want one place to manage VAPID keys.
-- You prefer a dedicated microservice.
-
----
-
-### 2. Embedded in an Express backend
-
-Import `createPushServer` and mount it in your own Express app. You provide the VAPID config programmatically — no `.env` needed for the library.
+### Broadcast to all user devices
 
 #### TypeScript
 
 ```ts
-import express from "express";
-import { createPushServer } from "am-webpush";
-
-const app = express();
-
-app.use(express.json());
-
-const pushRouter = createPushServer({
-  vapidSubject: "https://your-domain.com",
-  vapidPublicKey: process.env.VAPID_PUBLIC_KEY!,
-  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY!,
-  apiKey: process.env.PUSH_API_KEY!,
-});
-
-// Mount at /push so endpoints become /push/health, /push/send, /push/send-many
-app.use("/push", pushRouter);
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
-```
-
-#### JavaScript
-
-```js
-import express from "express";
-import { createPushServer } from "am-webpush";
-
-const app = express();
-
-app.use(express.json());
-
-const pushRouter = createPushServer({
-  vapidSubject: "https://your-domain.com",
-  vapidPublicKey: process.env.VAPID_PUBLIC_KEY,
-  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
-  apiKey: process.env.PUSH_API_KEY,
-});
-
-app.use("/push", pushRouter);
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
-```
-
-> **Important:** You must apply `express.json()` middleware **before** mounting the push router. The router expects `req.body` to already be parsed.
-
----
-
-### 3. Embedded in a Next.js app
-
-Use `createPushServer` inside a Next.js Route Handler. Since Route Handlers don't use Express middleware, you need to parse the body yourself and call the `web-push` library directly. Use this repo as a **reference implementation**.
-
-#### TypeScript (App Router)
-
-```ts
-// app/api/push/send/route.ts
-import webpush from "web-push";
-
 interface PushSubscription {
   endpoint: string;
   keys: { p256dh: string; auth: string };
 }
-
-interface PushPayload {
-  title: string;
-  body: string;
-  url?: string;
-}
-
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
-
-export async function POST(request: Request) {
-  const { subscription, payload } = (await request.json()) as {
-    subscription: PushSubscription;
-    payload: PushPayload;
-  };
-
-  if (!subscription || !payload) {
-    return Response.json(
-      { error: "subscription and payload are required" },
-      { status: 400 }
-    );
-  }
-
-  try {
-    await webpush.sendNotification(subscription, JSON.stringify(payload));
-    return Response.json({ success: true });
-  } catch (error) {
-    console.error("Push error:", error);
-    return Response.json(
-      { error: "Failed to send notification" },
-      { status: 500 }
-    );
-  }
-}
-```
-
-#### JavaScript (App Router)
-
-```js
-// app/api/push/send/route.js
-import webpush from "web-push";
-
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
-export async function POST(request) {
-  const { subscription, payload } = await request.json();
-
-  if (!subscription || !payload) {
-    return Response.json(
-      { error: "subscription and payload are required" },
-      { status: 400 }
-    );
-  }
-
-  try {
-    await webpush.sendNotification(subscription, JSON.stringify(payload));
-    return Response.json({ success: true });
-  } catch (error) {
-    console.error("Push error:", error);
-    return Response.json(
-      { error: "Failed to send notification" },
-      { status: 500 }
-    );
-  }
-}
-```
-
----
-
-## Exported types
-
-When using the library with TypeScript, you get full type support:
-
-```ts
-import type {
-  PushSubscription,
-  PushPayload,
-  PushServerOptions,
-  PushRouterOptions,
-} from "am-webpush";
-```
-
-| Type                | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| `PushSubscription`  | Browser push subscription (`endpoint` + `keys`)          |
-| `PushPayload`       | Notification payload (`title`, `body`, `url?`)           |
-| `PushServerOptions` | Config for `createPushServer()` (VAPID + optional `apiKey`) |
-| `PushRouterOptions` | Config for `createPushRouter()` (optional `apiKey`)      |
-
----
-
-## Subscription storage
-
-This server **does not store subscriptions**. Your application must store them in a database.
-
-A subscription object returned by the browser looks like this:
-
-```json
-{
-  "endpoint": "https://push-service/...",
-  "keys": {
-    "p256dh": "BNx4a...",
-    "auth": "abc1..."
-  }
-}
-```
-
-### Example Prisma model
-
-```prisma
-model PushSubscription {
-  id        String   @id @default(cuid())
-  endpoint  String   @unique
-  keys      Json
-  createdAt DateTime @default(now())
-  userId    String
-
-  @@index([userId])
-}
-```
-
-### Example: send to all user devices
-
-#### TypeScript
-
-```ts
-import type { PushSubscription } from "am-webpush";
 
 const subscriptions: PushSubscription[] = await prisma.pushSubscription.findMany({
   where: { userId },
@@ -482,6 +269,38 @@ await fetch("https://your-push-server.com/send-many", {
 
 ---
 
+## Subscription storage
+
+This server **does not store subscriptions**. Your application must store them in a database.
+
+A subscription object returned by the browser looks like this:
+
+```json
+{
+  "endpoint": "https://push-service/...",
+  "keys": {
+    "p256dh": "BNx4a...",
+    "auth": "abc1..."
+  }
+}
+```
+
+### Example Prisma model
+
+```prisma
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+  userId    String
+
+  @@index([userId])
+}
+```
+
+---
+
 ## iOS (Safari) note
 
 Push notifications on **iOS Safari (16.4+)** only work if the site is installed as a **PWA**.
@@ -507,13 +326,34 @@ Without installing the site on the Home Screen, iOS will ignore push notificatio
 
 ---
 
+## Deployment
+
+This server is meant to run behind a reverse proxy (Nginx, Nginx Proxy Manager, Traefik, Caddy, etc.) that handles SSL termination. Do not expose it directly to the internet.
+
+A typical setup:
+
+```
+Internet  →  Reverse Proxy (SSL)  →  am-webpush (:5500)
+              push.your-domain.com
+```
+
+You'll need:
+
+- A domain or subdomain pointed to your server (e.g. `push.your-domain.com`).
+- An SSL certificate (Let's Encrypt works fine — most reverse proxies automate this).
+- The reverse proxy forwarding HTTPS traffic to the port where am-webpush is running.
+
+The `VAPID_SUBJECT` in your `.env` should be the root domain that identifies your organization (e.g. `https://your-domain.com`), not necessarily the push server URL.
+
+---
+
 ## Development
 
 ```bash
-pnpm install        # Install dependencies
-pnpm build          # Compile TypeScript to dist/
-pnpm dev            # Watch mode (recompile on changes)
-pnpm start          # Start the server (requires build first)
+pnpm install             # Install dependencies
+pnpm build               # Compile TypeScript to dist/
+pnpm dev                 # Watch mode (recompile on changes)
+pnpm start               # Start the server (requires build first)
 pnpm run generate:vapid  # Generate VAPID key pair
 ```
 
@@ -521,7 +361,7 @@ pnpm run generate:vapid  # Generate VAPID key pair
 
 ```
 src/
-  router.ts    ← Core: createPushRouter() returns Express Router with all endpoints
+  router.ts    ← Core: Express Router with all endpoints + API key middleware
   server.ts    ← Standalone server: dotenv, VAPID config, cors, body parsing, listen
   vapid.ts     ← CLI script to generate VAPID key pairs
 index.ts       ← Library entry: exports createPushServer(), createPushRouter(), and types
