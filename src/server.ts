@@ -17,7 +17,7 @@ webpush.setVapidDetails(
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
-app.use(createPushRouter(webpush));
+app.use(createPushRouter(webpush, { apiKey: process.env.API_KEY }));
 
 app.listen(PORT, () => {
   console.log(`Push server escuchando en puerto ${PORT}`);

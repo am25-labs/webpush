@@ -31,6 +31,7 @@ pnpm build
 VAPID_SUBJECT=https://your-domain.com
 VAPID_PUBLIC_KEY=BNx4a...
 VAPID_PRIVATE_KEY=abc1...
+API_KEY=your-secret-api-key
 PORT=5500
 ```
 
@@ -132,6 +133,28 @@ Response:
 
 ---
 
+## Authentication
+
+The `/send` and `/send-many` endpoints are protected with API key authentication. The `/health` endpoint remains public.
+
+When `API_KEY` is set (standalone) or `apiKey` is provided (library), all send requests must include the key in the `Authorization` header:
+
+```
+Authorization: Bearer your-secret-api-key
+```
+
+If the key is missing or incorrect, the server responds with:
+
+```json
+{ "error": "Unauthorized" }
+```
+
+**Status:** `401`
+
+If no API key is configured, the endpoints remain open (backwards compatible).
+
+---
+
 ## Usage
 
 ### 1. Standalone server (recommended)
@@ -153,7 +176,10 @@ interface PushSubscription {
 async function sendPush(subscription: PushSubscription) {
   const res = await fetch("https://your-push-server.com/send", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.PUSH_API_KEY}`,
+    },
     body: JSON.stringify({
       subscription,
       payload: {
@@ -174,7 +200,10 @@ async function sendPush(subscription: PushSubscription) {
 ```js
 await fetch("https://your-push-server.com/send", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.PUSH_API_KEY}`,
+  },
   body: JSON.stringify({
     subscription,
     payload: {
@@ -212,6 +241,7 @@ const pushRouter = createPushServer({
   vapidSubject: "https://your-domain.com",
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY!,
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY!,
+  apiKey: process.env.PUSH_API_KEY!,
 });
 
 // Mount at /push so endpoints become /push/health, /push/send, /push/send-many
@@ -236,6 +266,7 @@ const pushRouter = createPushServer({
   vapidSubject: "https://your-domain.com",
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY,
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
+  apiKey: process.env.PUSH_API_KEY,
 });
 
 app.use("/push", pushRouter);
@@ -348,14 +379,16 @@ import type {
   PushSubscription,
   PushPayload,
   PushServerOptions,
+  PushRouterOptions,
 } from "am-webpush";
 ```
 
-| Type                | Description                                       |
-| ------------------- | ------------------------------------------------- |
-| `PushSubscription`  | Browser push subscription (`endpoint` + `keys`)   |
-| `PushPayload`       | Notification payload (`title`, `body`, `url?`)    |
-| `PushServerOptions` | Config object for `createPushServer()`            |
+| Type                | Description                                              |
+| ------------------- | -------------------------------------------------------- |
+| `PushSubscription`  | Browser push subscription (`endpoint` + `keys`)          |
+| `PushPayload`       | Notification payload (`title`, `body`, `url?`)           |
+| `PushServerOptions` | Config for `createPushServer()` (VAPID + optional `apiKey`) |
+| `PushRouterOptions` | Config for `createPushRouter()` (optional `apiKey`)      |
 
 ---
 
@@ -402,7 +435,10 @@ const subscriptions: PushSubscription[] = await prisma.pushSubscription.findMany
 
 await fetch("https://your-push-server.com/send-many", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.PUSH_API_KEY}`,
+  },
   body: JSON.stringify({
     subscriptions: subscriptions.map((s) => ({
       endpoint: s.endpoint,
@@ -426,7 +462,10 @@ const subscriptions = await prisma.pushSubscription.findMany({
 
 await fetch("https://your-push-server.com/send-many", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.PUSH_API_KEY}`,
+  },
   body: JSON.stringify({
     subscriptions: subscriptions.map((s) => ({
       endpoint: s.endpoint,

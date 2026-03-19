@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import type webpush from "web-push";
 
 export interface PushSubscription {
@@ -16,6 +16,10 @@ export interface PushPayload {
   [key: string]: unknown;
 }
 
+export interface PushRouterOptions {
+  apiKey?: string;
+}
+
 interface SendBody {
   subscription: PushSubscription;
   payload: PushPayload;
@@ -26,12 +30,29 @@ interface SendManyBody {
   payload: PushPayload;
 }
 
-export function createPushRouter(wp: typeof webpush): Router {
+function requireApiKey(apiKey: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const header = req.headers.authorization;
+
+    if (!header || header !== `Bearer ${apiKey}`) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    next();
+  };
+}
+
+export function createPushRouter(wp: typeof webpush, options: PushRouterOptions = {}): Router {
   const router = Router();
 
   router.get("/health", (_req: Request, res: Response) => {
     res.json({ status: "ok" });
   });
+
+  if (options.apiKey) {
+    router.use(["/send", "/send-many"], requireApiKey(options.apiKey));
+  }
 
   router.post("/send", async (req: Request, res: Response) => {
     const { subscription, payload } = req.body as SendBody;
