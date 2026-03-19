@@ -156,6 +156,18 @@ Response:
 
 ## Consuming from your app
 
+Your client apps need these environment variables:
+
+```env
+VAPID_PUBLIC_KEY=BNx4a...          # Same public key from the server's .env
+PUSH_API_KEY=your-secret-api-key   # Same API_KEY from the server's .env
+PUSH_SERVER_URL=https://push.your-domain.com
+```
+
+- `VAPID_PUBLIC_KEY` — needed in the frontend to subscribe the browser to push notifications.
+- `PUSH_API_KEY` — needed in the backend to authenticate requests to the push server.
+- `PUSH_SERVER_URL` — the URL where your am-webpush instance is running.
+
 ### TypeScript
 
 ```ts
@@ -165,7 +177,7 @@ interface PushSubscription {
 }
 
 async function sendPush(subscription: PushSubscription) {
-  const res = await fetch("https://your-push-server.com/send", {
+  const res = await fetch(`${process.env.PUSH_SERVER_URL}/send`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -189,7 +201,7 @@ async function sendPush(subscription: PushSubscription) {
 ### JavaScript
 
 ```js
-await fetch("https://your-push-server.com/send", {
+await fetch(`${process.env.PUSH_SERVER_URL}/send`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -220,7 +232,7 @@ const subscriptions: PushSubscription[] = await prisma.pushSubscription.findMany
   where: { userId },
 });
 
-await fetch("https://your-push-server.com/send-many", {
+await fetch(`${process.env.PUSH_SERVER_URL}/send-many`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -247,7 +259,7 @@ const subscriptions = await prisma.pushSubscription.findMany({
   where: { userId },
 });
 
-await fetch("https://your-push-server.com/send-many", {
+await fetch(`${process.env.PUSH_SERVER_URL}/send-many`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
