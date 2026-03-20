@@ -313,9 +313,76 @@ model PushSubscription {
 
 ---
 
+## Client setup
+
+To receive push notifications, the client browser needs a **Service Worker** registered. This is the only hard requirement on Android and desktop browsers.
+
+### Service Worker
+
+Create a `sw.js` file and serve it from the root of your site (e.g. `https://your-domain.com/sw.js`). Only one Service Worker can be active per scope — if you already have one, add the `push` and `notificationclick` listeners to it instead of creating a new file.
+
+Where to place the file depends on your framework:
+
+| Framework        | Location           |
+| ---------------- | ------------------ |
+| Next.js          | `public/sw.js`     |
+| Nuxt             | `public/sw.js`     |
+| Astro            | `public/sw.js`     |
+| Vite / React SPA | `public/sw.js`     |
+| Plain HTML       | Root of your site  |
+
+```js
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("push", (event) => {
+  const data = event.data.json();
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon || "/icons/icon-192x192.png",
+      data: { url: data.url || "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow(event.notification.data.url));
+});
+```
+
+### Registering the Service Worker
+
+In your frontend code, register the Service Worker and subscribe the user to push notifications:
+
+```js
+const registration = await navigator.serviceWorker.register("/sw.js");
+const subscription = await registration.pushManager.subscribe({
+  userVisibleOnly: true,
+  applicationServerKey: VAPID_PUBLIC_KEY, // Same public key from the server's .env
+});
+
+// Send `subscription` to your backend and store it (see "Subscription storage" below)
+```
+
+---
+
 ## iOS (Safari) note
 
-Push notifications on **iOS Safari (16.4+)** only work if the site is installed as a **PWA**.
+On **Android and desktop**, a registered Service Worker is all you need for push notifications.
+
+On **iOS Safari (16.4+)**, Apple has additional requirements:
+
+1. The site must have a **web app manifest** (`manifest.json`).
+2. The user must **install the site on the Home Screen** (Add to Home Screen).
+
+Without both of these, iOS will silently ignore push notifications.
 
 Minimal manifest:
 
@@ -333,8 +400,6 @@ Include it in your HTML:
 ```html
 <link rel="manifest" href="/manifest.json" />
 ```
-
-Without installing the site on the Home Screen, iOS will ignore push notifications.
 
 ---
 
