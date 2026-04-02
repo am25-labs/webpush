@@ -1,7 +1,7 @@
 {
-  "name": "am-webpush",
-  "version": "2.0.0",
-  "description": "Web Push notification server — CLI and programmatic library.",
+  "name": "@am25/webpush",
+  "version": "1.0.0",
+  "description": "Web Push notification microservice — standalone CLI server and programmatic library.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,26 +12,45 @@
     }
   },
   "bin": {
-    "am-webpush": "./dist/bin/webpush.js"
+    "webpush": "./dist/bin/webpush.js",
+    "create-webpush": "./dist/bin/create.js"
   },
   "files": [
     "dist/"
   ],
   "scripts": {
     "build": "tsc",
-    "start": "node dist/bin/webpush.js",
+    "start": "webpush",
     "dev": "tsc --watch",
     "generate:vapid": "node dist/src/vapid.js",
     "prepublishOnly": "pnpm build"
   },
+  "author": {
+    "name": "Alejandro Mártir",
+    "url": "https://alemartir.com"
+  },
+  "homepage": "https://github.com/am25-labs/webpush#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/am25-labs/webpush.git"
+  },
+  "bugs": {
+    "url": "https://github.com/am25-labs/webpush/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
     "web-push",
-    "notifications",
+    "push-notifications",
+    "webpush",
+    "vapid",
     "express",
     "nodejs",
-    "typescript"
+    "typescript",
+    "self-hosted",
+    "am25"
   ],
-  "author": "Alejandro Mártir",
   "license": "MIT",
   "dependencies": {
     "cors": "2.8.6",
