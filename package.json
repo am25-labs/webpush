@@ -1,6 +1,6 @@
 {
   "name": "@am25/webpush",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Self-hosted Web Push notification server. Deploy in seconds and send push notifications from any application.",
   "type": "module",
   "main": "dist/index.js",
