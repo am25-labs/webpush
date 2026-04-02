@@ -1,2 +1,6 @@
 #!/usr/bin/env node
-import "../src/server.js";
+if (process.argv[2] === "create-webpush") {
+  await import("./create.js");
+} else {
+  await import("../src/server.js");
+}
