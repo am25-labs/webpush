@@ -104,7 +104,8 @@ ${ok(`Done! ${c.bold}${dirName}${c.reset} is ready.`)}
 
 async function main() {
   // Resolve directory from optional CLI argument
-  const dirArg = process.argv[2];
+  // Filter out "create-webpush" in case invoked via: pnpm dlx @am25/webpush create-webpush [dir]
+  const dirArg = process.argv.slice(2).find((a) => a !== "create-webpush");
   const isCurrentDir = dirArg === ".";
 
   let dirName: string;
