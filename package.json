@@ -1,7 +1,7 @@
 {
   "name": "@am25/webpush",
   "version": "1.0.0",
-  "description": "Web Push notification microservice — standalone CLI server and programmatic library.",
+  "description": "Self-hosted Web Push notification server. Deploy in seconds and send push notifications from any application.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
