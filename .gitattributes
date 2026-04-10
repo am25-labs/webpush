@@ -1,0 +1,3 @@
+src/** linguist-language=TypeScript
+bin/** linguist-language=TypeScript
+*.ts linguist-language=TypeScript
