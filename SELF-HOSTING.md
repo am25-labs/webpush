@@ -4,6 +4,11 @@ This guide is for developers who want to run the server directly from source, co
 
 For the standard setup, see the [README](README.md).
 
+Important: this guide is for the Git repository mode, not the published npm package mode.
+
+- Published package mode: install `@am25/webpush` into another app and run `webpush`.
+- Git repository mode: clone this repository, build it, and run the compiled server from `dist/`.
+
 ---
 
 ## Requirements
@@ -63,6 +68,12 @@ pnpm start
 ```
 
 The server will be available at `http://localhost:5500`.
+
+For Dokploy or similar platforms, use:
+
+- Install command: `pnpm install`
+- Build command: `pnpm build`
+- Start command: `pnpm start`
 
 ---
 

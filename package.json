@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "start": "webpush",
+    "start": "node ./dist/src/server.js",
     "dev": "tsc --watch",
     "generate:vapid": "node dist/src/vapid.js",
     "prepublishOnly": "pnpm build"

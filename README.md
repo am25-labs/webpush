@@ -10,6 +10,53 @@ The server **does not store subscriptions**. Your application is responsible for
 
 ---
 
+## Two ways to use it
+
+This project supports two different modes:
+
+### 1. As a published npm package
+
+This is the main product experience.
+
+Use it when you want a standalone push server without cloning this repository:
+
+```bash
+pnpm dlx @am25/webpush create-webpush
+```
+
+That setup wizard creates a new app, installs `@am25/webpush`, writes the `.env`, and runs the server through the published CLI binary:
+
+```json
+{
+  "scripts": {
+    "start": "webpush"
+  }
+}
+```
+
+In this mode, `webpush` comes from `node_modules/.bin`.
+
+### 2. From this Git repository
+
+Use it when you want to self-host from source, deploy directly from GitHub, or contribute to the project.
+
+In this mode you build the TypeScript source and start the compiled server:
+
+```bash
+pnpm install
+pnpm build
+pnpm start
+```
+
+For deployment platforms such as Dokploy, the important distinction is:
+
+- Deploying the npm package means installing `@am25/webpush` into another app.
+- Deploying this repository means cloning source code and running the compiled output from `dist/`.
+
+If you are deploying from GitHub, see [SELF-HOSTING.md](SELF-HOSTING.md).
+
+---
+
 ## Setup
 
 Run the setup wizard. It generates your VAPID keys and API key automatically, then installs and starts the server.
@@ -125,10 +172,15 @@ Response:
 
 Your apps need these values from the server's `.env`:
 
-| Variable | Where to use |
-|---|---|
-| `VAPID_PUBLIC_KEY` | Frontend — to subscribe the browser |
-| `API_KEY` | Backend — to authenticate requests to the push server |
+| Variable | Required | Where to use | What it does |
+|---|---|---|---|
+| `VAPID_SUBJECT` | Yes | Server only | Identifier used in VAPID claims. Must be a `mailto:` or `https:` URI. |
+| `VAPID_PUBLIC_KEY` | Yes | Server + frontend | Public key used by the server and exposed to the browser so it can create subscriptions. |
+| `VAPID_PRIVATE_KEY` | Yes | Server only | Private key used by the server to sign push requests. Never expose it to the client. |
+| `API_KEY` | Yes | Server + your backend | Bearer token that protects `/send` and `/send-many`. Your backend sends it when calling this push server. |
+| `PORT` | No | Server only | Port used by the HTTP server. Defaults to `5500`. |
+
+Only `VAPID_PUBLIC_KEY` should reach the frontend.
 
 ### TypeScript
 
