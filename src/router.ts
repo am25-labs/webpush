@@ -65,8 +65,8 @@ export function createPushRouter(wp: typeof webpush, options: PushRouterOptions 
     try {
       await wp.sendNotification(subscription, JSON.stringify(payload));
       res.json({ success: true });
-    } catch (error) {
-      console.error("Error enviando notificación:", error);
+    } catch {
+      console.error("Push notification delivery failed");
       res.status(500).json({ error: "Error enviando notificación" });
     }
   });
@@ -86,11 +86,11 @@ export function createPushRouter(wp: typeof webpush, options: PushRouterOptions 
         try {
           await wp.sendNotification(subscription, JSON.stringify(payload));
           return { success: true as const };
-        } catch (error) {
-          console.error("Error enviando a una subscripción:", error);
+        } catch {
+          console.error("Push subscription delivery failed");
           return {
             success: false as const,
-            error: error instanceof Error ? error.message : String(error),
+            error: "Error enviando notificación",
           };
         }
       })
