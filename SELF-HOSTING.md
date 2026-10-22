@@ -13,7 +13,7 @@ Important: this guide is for the Git repository mode, not the published npm pack
 
 ## Requirements
 
-- Node.js >= 18
+- Node.js 22.23.4
 - pnpm
 
 ---

@@ -62,6 +62,7 @@ function scaffold(
     name: dirName,
     version: "1.0.0",
     private: true,
+    engines: { node: "22.23.4" },
     scripts: { start: "webpush" },
     dependencies: { [PACKAGE_NAME]: "latest" },
   };
